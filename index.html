@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body class="bg-white text-gray-800 flex items-center justify-center min-h-screen relative">
+    <!-- Emojis will be injected here by JavaScript -->
+    <div id="emoji-container"></div>
+
+    <main class="w-full max-w-2xl mx-auto px-4 z-10">
+        <div id="input-section" class="text-center transition-opacity duration-500">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2">Analyze Emotions from Text & Tweets</h1>
+            <p class="text-gray-500 mb-8">AI powered emotion analyser</p>
+
+            <div class="bg-black text-white rounded-2xl p-4 shadow-2xl">
+                <textarea id="text-input" class="w-full bg-black text-white placeholder-gray-500 focus:outline-none resize-none" rows="4" placeholder="Paste your text here"></textarea>
+                <div class="flex justify-between items-center mt-4">
+                    <div class="flex items-center space-x-2 bg-gray-800 p-1 rounded-full">
+                        <button id="speed-btn" class="px-4 py-1.5 bg-gray-700 rounded-full text-sm font-medium">⚡️ Speed</button>
+                        <button id="quality-btn" class="px-4 py-1.5 rounded-full text-sm font-medium text-gray-400">✨ Quality</button>
+                    </div>
+                    <button id="analyze-btn" class="bg-green-500 hover:bg-green-600 text-black rounded-full p-3 transition-transform transform hover:scale-110 flex items-center justify-center w-[48px] h-[48px]">
+                        <svg id="analyze-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-up"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                        <div id="analyze-spinner" class="spinner hidden"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-section" class="hidden bg-white rounded-2xl p-8 shadow-2xl transition-opacity duration-500 w-full max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                 <h2 class="text-2xl font-bold">Result</h2>
+                 <button id="back-btn" class="text-gray-500 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                 </button>
+            </div>
+            <p class="text-gray-500 mb-6">Card Description</p>
+
+            <div id="emotion-results" class="space-y-4">
+                <!-- Emotion results will be injected here -->
+            </div>
+            <div class="mt-8 pt-4 border-t border-gray-200 flex items-center text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <p id="analyzed-text" class="truncate"></p>
+            </div>
+        </div>
+         <div id="error-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+            <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Error</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p id="error-message" class="text-sm text-gray-500"></p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="close-error-modal" class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="./script.js"></script>
+</body>
+</html>
