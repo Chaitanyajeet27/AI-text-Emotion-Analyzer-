@@ -1,6 +1,6 @@
 body {
     font-family: 'Inter', sans-serif;
-    overflow: hidden;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .emoji {
@@ -40,4 +40,43 @@ body {
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* Sidebar Styling */
+.sidebar {
+    height: 100%;
+    width: 280px;
+    position: fixed;
+    z-index: 100;
+    top: 0;
+    left: -280px; /* Hidden by default */
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+.sidebar .close-btn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+    color: white;
+    text-decoration: none;
+}
+
+/* History Styling */
+.history-item {
+    background-color: #222;
+    border: 1px solid #444;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    color: white;
 }

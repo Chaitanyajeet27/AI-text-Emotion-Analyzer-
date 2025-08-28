@@ -15,6 +15,22 @@ const errorModal = document.getElementById('error-modal');
 const errorMessage = document.getElementById('error-message');
 const closeErrorModalBtn = document.getElementById('close-error-modal');
 
+// Auth DOM Elements
+const authSection = document.getElementById('auth-section');
+const appContent = document.getElementById('app-content');
+const loginForm = document.getElementById('login-form');
+const signupForm = document.getElementById('signup-form');
+const loginBtn = document.getElementById('login-btn');
+const signupBtn = document.getElementById('signup-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const showSignup = document.getElementById('show-signup');
+const showLogin = document.getElementById('show-login');
+
+// Sidebar and History DOM Elements
+const sidebar = document.getElementById('sidebar');
+const historyBtn = document.getElementById('history-btn');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+const historyList = document.getElementById('history-list');
 
 // --- Data ---
 const emojis = ['😍', '🤯', '🥺', '😳', '😀', '😈', '😁', '😠', '😕', '🤢', '😨', '🤗', ' guilt', '❤️', ' lust', ' pride', '😌', '😢', ' shame', '😲'];
@@ -36,6 +52,8 @@ const emotions = [
     { name: 'Shame', emoji: '😳' },
     { name: 'Surprise', emoji: '😲' }
 ];
+
+const API_URL = 'http://localhost:5000/api'; // Your backend URL
 
 // --- Functions ---
 
@@ -80,6 +98,56 @@ function showError(message) {
     errorModal.classList.remove('hidden');
 }
 
+/**
+ * Saves a search to the user's history in the backend.
+ * @param {string} text - The analyzed text.
+ * @param {Array} results - The emotion analysis results.
+ */
+async function saveToHistory(text, results) {
+    const token = localStorage.getItem('token');
+    if (token) {
+        await fetch(`${API_URL}/history`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-auth-token': token
+            },
+            body: JSON.stringify({ text, results })
+        });
+        getHistory(); // Refresh history
+    }
+}
+
+/**
+ * Fetches and displays the user's search history.
+ */
+async function getHistory() {
+    const token = localStorage.getItem('token');
+    if (token) {
+        const res = await fetch(`${API_URL}/history`, {
+            headers: { 'x-auth-token': token }
+        });
+        const history = await res.json();
+        historyList.innerHTML = ''; // Clear previous history
+        history.forEach(item => {
+            const historyItem = document.createElement('div');
+            historyItem.classList.add('history-item');
+            
+            let resultsHtml = '';
+            item.results.slice(0, 3).forEach(result => { // Show top 3 results
+                resultsHtml += `<p>${result.emoji} ${result.name}: ${Math.round(result.score * 100)}%</p>`;
+            });
+
+            historyItem.innerHTML = `
+                <p class="font-semibold mb-2 truncate">"${item.text}"</p>
+                <div class="text-sm">${resultsHtml}</div>
+                <p class="text-xs text-gray-400 mt-2">${new Date(item.timestamp).toLocaleString()}</p>
+            `;
+            historyList.appendChild(historyItem);
+        });
+    }
+}
+
 
 /**
  * Analyzes text using the Gemini API.
@@ -91,7 +159,8 @@ async function analyzeText(text) {
     
     setLoading(true);
 
-    const apiKey = "AIzaSyDTA9ASOc6uG5viHJTNI4p2r5tIlpRh8jc"; // API key is handled by the environment.
+    //Gemini API key
+    const apiKey = "AIzaSyDTA9ASOc6uG5viHJTNI4p2r5tIlpRh8jc"; 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     const prompt = `Analyze the sentiment of the following text and provide a list of emotions with their corresponding scores from 0 to 1. The emotions should include: Joy, Anticipation, Optimism, Anger, Confusion, Disgust, Fear, Gratitude, Guilt, Love, Lust, Pride, Relief, Sadness, Shame, Surprise. Return the result as a JSON array of objects, where each object has 'emotion' and 'score' keys. Text: "${text}"`;
@@ -115,6 +184,10 @@ async function analyzeText(text) {
     };
     
     try {
+        if (apiKey === "YOUR_API_KEY_HERE") {
+            throw new Error("Please replace 'YOUR_API_KEY_HERE' with your actual Gemini API key.");
+        }
+
         let response;
         let result;
         let retries = 3;
@@ -148,7 +221,7 @@ async function analyzeText(text) {
             const apiResults = JSON.parse(jsonText);
 
             // Map API results to our local emotion data to include emojis
-            return apiResults.map(apiResult => {
+            const finalResults = apiResults.map(apiResult => {
                 const localEmotion = emotions.find(e => e.name.toLowerCase() === apiResult.emotion.toLowerCase());
                 return {
                     name: apiResult.emotion,
@@ -156,6 +229,10 @@ async function analyzeText(text) {
                     emoji: localEmotion ? localEmotion.emoji : '❓' // Default emoji if not found
                 };
             }).sort((a, b) => b.score - a.score); // Sort by score descending
+            
+            await saveToHistory(text, finalResults);
+            return finalResults;
+
         } else {
             throw new Error("Invalid response structure from API.");
         }
@@ -207,6 +284,18 @@ function toggleView() {
     resultSection.classList.toggle('hidden');
 }
 
+// --- Auth Functions ---
+function showApp() {
+    authSection.classList.add('hidden');
+    appContent.classList.remove('hidden');
+    getHistory();
+}
+
+function showAuth() {
+    authSection.classList.remove('hidden');
+    appContent.classList.add('hidden');
+}
+
 // --- Event Listeners ---
 
 analyzeBtn.addEventListener('click', async () => {
@@ -247,7 +336,79 @@ qualityBtn.addEventListener('click', () => {
     speedBtn.classList.add('text-gray-400');
 });
 
+showSignup.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginForm.classList.add('hidden');
+    signupForm.classList.remove('hidden');
+});
+
+showLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    signupForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+});
+
+signupBtn.addEventListener('click', async () => {
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    try {
+        const res = await fetch(`${API_URL}/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.msg || 'Failed to sign up');
+        }
+        showLogin.click();
+    } catch (err) {
+        showError(err.message);
+    }
+});
+
+loginBtn.addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.msg || 'Failed to log in');
+        }
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        showApp();
+    } catch (err) {
+        showError(err.message);
+    }
+});
+
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    showAuth();
+});
+
+historyBtn.addEventListener('click', () => {
+    sidebar.classList.add('open');
+});
+
+closeSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+});
+
+
 // --- Initialization ---
-window.onload = () => {
+document.addEventListener('DOMContentLoaded', () => {
     createFloatingEmojis();
-};
+    const token = localStorage.getItem('token');
+    if (token) {
+        showApp();
+    } else {
+        showAuth();
+    }
+});
